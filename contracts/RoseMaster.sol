@@ -121,6 +121,7 @@ contract RoseMaster is Ownable {
         RoseToken _rose,
         address _sfr,
         address _devaddr,
+        address _topReferrer,
         uint256 _startBlock,
         uint256 _firstBlockReward,
         uint256 _supplyPeriod,
@@ -146,7 +147,7 @@ contract RoseMaster is Ownable {
             );
         }
 
-        referrers[_devaddr] = _devaddr;
+        referrers[_topReferrer] = _topReferrer;
     }
 
     function pool1Length() external view returns (uint256) {
