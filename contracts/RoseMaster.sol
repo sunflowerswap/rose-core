@@ -297,14 +297,6 @@ contract RoseMaster is Ownable {
                 from = periodInfo[i].endBlock;
             }
         }
-        PeriodInfo memory lastPeriodInfo = periodInfo[periodInfo.length - 1];
-        if (lastPeriodInfo.endBlock > from) {
-            rewards.add(
-                lastPeriodInfo.endBlock.sub(from).mul(
-                    lastPeriodInfo.blockReward
-                )
-            );
-        }
     }
 
     // View function to see pending ROSEs on frontend.
@@ -450,14 +442,14 @@ contract RoseMaster is Ownable {
         PoolInfo1 storage pool = poolInfo1[_pid];
         UserInfo storage user = userInfo1[_pid][msg.sender];
         updatePool1(_pid);
-        uint256 userAmount = user.amount;
-        if (userAmount > 0) {
-            uint256 pending = userAmount
+        if (user.amount > 0) {
+            uint256 pending = user.amount
                 .mul(pool.accRosePerShare)
                 .div(1e12)
                 .sub(user.rewardDebt);
             if (pending > 0) {
                 safeRoseTransfer(msg.sender, pending);
+                mintReferralReward(pending);
             }
         }
         if (_amount > 0) {
@@ -467,10 +459,9 @@ contract RoseMaster is Ownable {
                 _amount
             );
             user.amount = user.amount.add(_amount);
-            userAmount = userAmount.add(_amount);
             pool.totalAmount = pool.totalAmount.add(_amount);
         }
-        user.rewardDebt = userAmount.mul(pool.accRosePerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accRosePerShare).div(1e12);
         emit Deposit1(msg.sender, _pid, _amount);
     }
 
@@ -479,24 +470,23 @@ contract RoseMaster is Ownable {
         PoolInfo2 storage pool = poolInfo2[_pid];
         UserInfo storage user = userInfo2[_pid][msg.sender];
         updatePool2(_pid);
-        uint256 userAmount = user.amount;
-        if (userAmount > 0) {
-            uint256 pending = userAmount
+        if (user.amount > 0) {
+            uint256 pending = user.amount
                 .mul(pool.accRosePerShare)
                 .div(1e12)
                 .sub(user.rewardDebt);
             if (pending > 0) {
                 safeRoseTransfer(msg.sender, pending);
+                mintReferralReward(pending);
             }
         }
         if (_amount > 0) {
             _safeTransferFrom(sfr, address(msg.sender), address(this), _amount);
             user.amount = user.amount.add(_amount);
-            userAmount = userAmount.add(_amount);
             pool.lockedAmount = pool.lockedAmount.add(_amount);
         }
         updateLockedAmount(pool);
-        user.rewardDebt = userAmount.mul(pool.accRosePerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accRosePerShare).div(1e12);
         emit Deposit2(msg.sender, _pid, _amount);
     }
 
@@ -672,7 +662,7 @@ contract RoseMaster is Ownable {
             return;
         }
         // mint for the second level referrer.
-        rose.mint(referrer, _amount.mul(2).div(100));
+        rose.mint(referrers[referrer], _amount.mul(2).div(100));
     }
 
     // Update the locked amount that meet the conditions
@@ -755,3 +745,4 @@ contract RoseMaster is Ownable {
         IERC20(token).safeTransfer(to, amount);
     }
 }
+
