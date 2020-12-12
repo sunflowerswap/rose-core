@@ -557,7 +557,7 @@ contract RoseMaster is Ownable {
     function emergencyWithdraw2(uint256 _pid) public {
         PoolInfo2 storage pool = poolInfo2[_pid];
         UserInfo storage user = userInfo2[_pid][msg.sender];
-        require(user.amount < pool.freeAmount);
+        require(user.amount <= pool.freeAmount);
         _safeTransfer(sfr, address(msg.sender), user.amount);
         emit EmergencyWithdraw2(msg.sender, _pid, user.amount);
         user.amount = 0;
